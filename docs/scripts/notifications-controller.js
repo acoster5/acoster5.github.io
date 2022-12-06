@@ -3,6 +3,8 @@
  */
 const platformClient = require('platformClient');
 const notificationsApi = new platformClient.NotificationsApi();
+//me
+const conversationsApi = new platformClient.ConversationsApi();
 
 let channel = {};
 let ws = null;
@@ -39,7 +41,7 @@ export default {
             channel = data;
             ws = new WebSocket(channel.connectUri);
             ws.onmessage = onSocketMessage;
-			alert('---- Created2 Notifications Channel ----');
+			//alert('---- Created2 Notifications Channel ----');
         });
     },
 
@@ -50,13 +52,40 @@ export default {
      */
     addSubscription(topic, callback){
         let body = [{'id': topic}]
-
+		//console.log('Addeding subscription to topic: '+ topic);
         return notificationsApi.postNotificationsChannelSubscriptions(
                 channel.id, body)
         .then((data) => {
             subscriptionMap[topic] = callback;
-			alert(`Added subscription to ${topic}`);
             console.log(`Added subscription to ${topic}`);
         });
+    },
+	
+	//me
+	getCommunicationId(conversationId,callback){	
+		return conversationsApi.getConversation(conversationId)
+			.then((data) => {
+			//console.log(`getCommunicationId success! data: ${JSON.stringify(data, null, 2)}`);
+			callback(data);
+		})
+		.catch((err) => {
+			console.log('There was a failure calling getCommunicationId');
+		console.error(err);
+		});
+    },
+	getMessageText(conversationId, messageId, callback){	
+		let opts = { 
+			'useNormalizedMessage': false // Boolean | If true, response removes deprecated fields (textBody, media, stickers)
+		};
+		return conversationsApi.getConversationsMessageMessage(conversationId, messageId, opts)
+			.then((data) => {
+			//console.log(`getConversationsMessageMessage success! data: ${JSON.stringify(data, null, 2)}`);
+			callback(data);
+
+		})
+		.catch((err) => {
+			console.log('There was a failure calling getConversationsMessageMessage');
+		console.error(err);
+		});
     }
 }

@@ -14,6 +14,7 @@ let userId = '';
 let agentID;
 let currentConversation = null;
 let currentConversationId = '';
+let communicationId = '';
 
 /**
  * Callback function for 'message' and 'typing-indicator' events.
@@ -21,6 +22,7 @@ let currentConversationId = '';
  * 
  * @param {Object} data the event data  
  */
+/*
 let onMessage = (data) => {
 	alert('llega message');
     switch(data.metadata.type){
@@ -32,7 +34,7 @@ let onMessage = (data) => {
             let message = eventBody.body;
             let convId = eventBody.conversation.id;
             let senderId = eventBody.sender.id;
-			alert('message: '+message);
+			//alert('message: '+message);
             // Conversation values for cross reference
             let conversation = currentConversation;
             let participant = conversation.participants.find(p => p.chats[0].id == senderId);
@@ -53,6 +55,69 @@ let onMessage = (data) => {
             break;
     }
 };
+*/
+function onMessageBody (data){
+	console.log('******* textBody onMessageBody: '+data.textBody);
+	agentAssistant.getRecommendations(data.textBody, currentConversationId, communicationId);
+}
+function onMessageCommunicationId (data){
+	let mparticipant = data.participants;
+	let plenght= mparticipant.length;
+	let i = 0;
+	while (i < plenght) {
+		let purpose = mparticipant[i].purpose;
+		if(purpose == 'agent'){
+			communicationId = mparticipant[i].messages[0].id;
+		}
+		i++;
+	}
+	console.log('******* onMessageCommunicationId: '+communicationId);
+	return communicationId;
+	//agentAssistant.getRecommendations(data.textBody, currentConversationId, currentConversationId);
+}
+
+let onMessage2 = (data) => {
+	//console.log('******llega message: '+JSON.stringify(data, null, 2));
+	let mparticipant = data.eventBody.participants[0];
+	let mtype = mparticipant.type;
+	//console.log('mtype: '+mtype);
+    switch(mtype){
+        case 'typing-indicator':
+            break;
+        case 'webmessaging':
+			let mpurpose = mparticipant.purpose;
+			//console.log('mpurpose: '+mpurpose);
+			
+            // Get agent communication ID
+            if(mpurpose == 'agent') {
+			//if(mpurpose != 'customer') {
+                //agentID = senderId;
+				
+                agentAssistant.clearStackedText();
+				agentAssistant.clearRecommendations();
+            } else {
+                //let agent = conversation.participants.find(p => p.purpose == 'agent');
+                //agentID = agent.chats[0].id;
+            }
+
+            // Get some recommended replies
+            if(mpurpose == 'customer') {
+				let mlastmessage = mparticipant.messages.length;
+				if(mlastmessage>0)
+					mlastmessage = mlastmessage-1;
+				
+				let mmessageId = mparticipant.messages[mlastmessage].message.id;
+				//console.log('mmessageId: '+mmessageId);
+				//console.log('currentConversationId: '+currentConversationId);
+				
+				controller.getMessageText(currentConversationId, mmessageId,onMessageBody);
+				//console.log('**** textBody onMessage2: '+textBody);
+				//agentAssistant.getRecommendations(textBody, convId, agentID);
+			}
+
+            break;
+    }
+};
 
 /**
  * Set-up the channel for chat conversations
@@ -62,8 +127,10 @@ function setupChatChannel(){
     .then(data => {
         // Subscribe to incoming chat conversations
         return controller.addSubscription(
-            `v2.users.${userId}.conversations.chats`,
-            subscribeChatConversation(currentConversationId));
+            //`v2.users.${userId}.conversations.chats`,
+			`v2.users.${userId}.conversations.messages`,
+            //subscribeChatConversation(currentConversationId));
+			onMessage2);
     });
 }
 
@@ -72,11 +139,31 @@ function setupChatChannel(){
  * @param {String} conversationId 
  * @returns {Promise}
  */
+function getCommunicationId(conversationId){
+	//console.log('calling subscribe ConversationID: '+conversationId);
+    return controller.getCommunicationId(conversationId,onMessageCommunicationId);
+}
+/*
 function subscribeChatConversation(conversationId){
+	console.log('calling subscribe ConversationID: '+conversationId);
     return controller.addSubscription(
-            `v2.conversations.chats.${conversationId}.messages`,
+            //`v2.conversations.chats.${conversationId}.messages`,
+			`v2.conversations.messages.${conversationId}`,
+			//'v2.conversations.messages.6227f0a1-6847-404e-ade2-862302c2e096.messages.85c01f55d54c8bbf9259a39578a48308',
             onMessage);
 }
+*/
+/*
+function handleChat(conversationId){
+	//alert('calling subscribe ConversationID: '+conversationId);
+    return controller.addSubscription(
+            //`v2.conversations.chats.${conversationId}.messages`,
+			`v2.conversations.messages.${conversationId}`,
+			//'v2.conversations.messages.6227f0a1-6847-404e-ade2-862302c2e096.messages.85c01f55d54c8bbf9259a39578a48308',
+            onMessage);
+			
+}
+*/
 
 /** --------------------------------------------------------------
  *                       INITIAL SETUP
@@ -102,13 +189,14 @@ client.loginImplicitGrant(
     return usersApi.getUsersMe();
 }).then(userMe => {
     userId = userMe.id;
-
     // Get current conversation
     return conversationsApi.getConversation(currentConversationId);
 }).then((conv) => { 
     currentConversation = conv;
-
+	
     return setupChatChannel();
+}).then(() => { 
+    return getCommunicationId(currentConversationId);
 }).then(data => {
     console.log('Finished Setup');
 
