@@ -23,22 +23,3 @@ app.use(express.json());
 app.use('/', routes);
 
 app.listen(config.PORT, config.HOST);
-
-// Start express on the defined port
-app.listen(config.PORT, () => {
-    console.log(`Server listening on local port ${config.PORT}`);
-
-    // Start Local Tunnel for public internet access
-    (async () => {
-        const tunnel = await localtunnel({ 
-            port: config.PORT, 
-            subdomain: LT_SUBDOMAIN
-        });
-
-        console.log(`Server listening on external URL ${tunnel.url}`);
-
-        tunnel.on('close', () => {
-            // tunnels are closed
-        });
-    })();
-});
