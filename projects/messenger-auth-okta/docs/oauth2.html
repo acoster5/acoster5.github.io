@@ -274,7 +274,320 @@
 
 	
 	<script>
-		//xxxxx
+		
+		if (Genesys) {
+			const ndAuthLoginBtn = document.getElementById('authLoginBtn');
+			const ndAuthLogoutBtn = document.getElementById('authLogoutBtn');
+			const ndAuthClientId = document.getElementById('authClientId');
+			const ndOktaURL = document.getElementById('oktaURL');
+			const ndAuthScope = document.getElementById('authScope');
+			const ndLoading = document.getElementById('loading');
+			const ndAuthFlow = document.getElementById('oAuthFlow');
+			const ndAuthMaxAge = document.getElementById('maxAge');
+			const ndSignInButton = document.getElementById('signInButton');
+			const ndSignContent = document.getElementById('signin');
+			const bFetching = localStorage.getItem('authFetching'); // eslint-disable-line
+			let sRedirectURL = window.location.href; /**OKTA redirecturi is expected to be the full path in case of the deployed url */
+			let bAuthenticated = false,
+				bAlreadyAuthorized = false,
+				authClient = '',
+				brandAuthCode = '';
+
+			// LocalStorage usage is must for this product
+			// If their exists any previous selections, grab and add them
+			const clientId = window.localStorage.getItem('clientId'); // eslint-disable-line
+			const oktaurl = window.localStorage.getItem('oktaurl'); // eslint-disable-line
+			const authScope = window.localStorage.getItem('authScope'); // eslint-disable-line
+			const AuthFlow = window.localStorage.getItem('authFlow'); // eslint-disable-line
+			let maxAge = window.localStorage.getItem('maxAge'); // eslint-disable-line
+
+			/** OktaAuth generates nonce by default and send it to authorization server which then stores it in session storage. In order to send the same nonce to the authClient get it from the session storage and resolve it in getAuthCode
+			 * When pkce option is true, OKTAAuth generates its own code verifier and code challenge and stores it in session storage. In order to send the same codeVerifier to the authClient get it from the session storage and resolve it in getAuthCode*/
+			let sOktaTransactionStorage = window.sessionStorage.getItem("okta-transaction-storage"), // eslint-disable-line
+				verifier = '',
+				sNonce = ''; // eslint-disable-line
+
+			if (sOktaTransactionStorage) {
+				const oStorage = JSON.parse(sOktaTransactionStorage);
+
+				if (oStorage && Object.keys(oStorage).length) {
+					const { codeVerifier, nonce } = oStorage || {};
+
+					verifier = codeVerifier || '';
+					sNonce = nonce || '';
+				}
+			}
+
+			const QueryString = window.location.search;
+			const urlParams = new URLSearchParams(QueryString);
+
+			if (urlParams.has('code')) {
+				brandAuthCode = urlParams.get('code');
+			} else {
+				const query = window.location.search.substring(1);
+				const code = query.split('code=')[1];
+
+				brandAuthCode = code && code.split('&')[0];
+			}
+
+			if (sRedirectURL && sRedirectURL.indexOf('?code') !== -1) { /**split the redirect url from the authorized okta response and pass it to the getAuthcode command */
+				bAlreadyAuthorized = true;
+				const aPath = sRedirectURL.split('?code');
+
+				sRedirectURL = aPath && aPath.length && aPath[0];
+			}
+
+			if (clientId) ndAuthClientId.value = clientId;
+			if (oktaurl) ndOktaURL.value = oktaurl;
+			if (authScope) ndAuthScope.value = authScope;
+			if (maxAge) ndAuthMaxAge.value = maxAge;
+
+			if (AuthFlow) ndAuthFlow.value = AuthFlow;
+
+			if(oktaurl && sRedirectURL){ /**Initialize the okta auth client with the config options */
+				authClient = new OktaAuth({
+					issuer: `${oktaurl}`,
+					redirectUri: `${sRedirectURL}`,
+					postLogoutRedirectUri: `${sRedirectURL}`
+				});
+			}
+
+			let bPKCE = AuthFlow == "pkce_flow" || false;
+
+			Genesys('subscribe', 'GenesysJS.configurationReceived', function (config) {
+				console.log('LOG: Received OKTA GenesysJS.configurationReceived');
+				if (config) {
+					console.log('LOG: config yes');
+					const { deploymentConfig } = config.data || {};
+					const { auth } = deploymentConfig || {};
+					const { enabled: bAuthEnabled } = auth || {};
+					console.log('LOG: '+JSON.stringify(config, null, 2));
+					console.log('LOG: bAuthEnabled =  '+bAuthEnabled);
+					if (bAuthEnabled) {
+						ndSignInButton && ndSignInButton.removeAttribute("disabled");
+						if (!bAuthenticated && !bAlreadyAuthorized && ndSignInButton.classList.contains("collapsed")) {
+							ndSignInButton.classList.remove("collapsed");
+							ndSignContent.classList.remove("collapse");
+							ndSignContent.classList.add("show");
+							ndAuthClientId.focus();
+						}
+					}
+				}
+			});
+
+			function toggleLogin() {
+				if (bAuthenticated) {
+					document.getElementById("okta_sign_in").style.display = 'none';
+					document.getElementById("okta_sign_out").style.display = 'block';
+					ndLoading.style.display = 'none';
+				} else {
+					if (!bFetching) {
+						document.getElementById("okta_sign_in").style.display = 'block';
+					}
+					document.getElementById("okta_sign_out").style.display = 'none';
+				}
+			}
+
+			function showProgress() {
+				document.getElementById("okta_sign_in").style.display = 'none';
+				document.getElementById("okta_sign_out").style.display = 'none';
+				ndLoading.style.display = 'block';
+			}
+
+			function hideProgress() {
+				ndLoading.style.display = 'none';
+			}
+
+			function brandLogin() { // eslint-disable-line
+
+				console.log('LOG: brandLogin()');
+
+				const sClientId = ndAuthClientId.value;
+				const sOktaurl = ndOktaURL.value;
+				const sAuthScope = ndAuthScope.value;
+
+				const sAuthFlow = ndAuthFlow.value;
+
+				bPKCE = sAuthFlow == "pkce_flow" || false;
+
+				const aScopes = ['openid', 'email', 'profile'];
+
+				maxAge = ndAuthMaxAge.value;
+
+				localStorage.setItem('clientId', sClientId); // eslint-disable-line
+				localStorage.setItem('oktaurl', sOktaurl); // eslint-disable-line
+				localStorage.setItem('authScope', sAuthScope); // eslint-disable-line
+				localStorage.setItem('maxAge', maxAge); // eslint-disable-line
+				localStorage.setItem("authFlow", sAuthFlow); // eslint-disable-line
+
+
+				if (sClientId && sOktaurl) { // eslint-disable-line
+					showProgress();
+					// LocalStorage usage is must for this product
+					localStorage.setItem('authFetching', true); // eslint-disable-line
+					if (sAuthScope === 'offline_access') aScopes.push(sAuthScope);// eslint-disable-line
+
+					const oktaConfig = {// eslint-disable-line
+						redirectUri: `${sRedirectURL}`,
+						clientId: sClientId,
+						issuer: `${sOktaurl}`,
+						scopes: aScopes,
+						pkce: bPKCE ? true : false,
+						responseType: 'code',
+					};
+
+					if (maxAge) {
+						oktaConfig.maxAge = parseInt(maxAge) // eslint-disable-line
+					}
+
+					/**Initialize the okta auth client with the config options */
+
+					if (!authClient) authClient = new OktaAuth(oktaConfig); // eslint-disable-line 
+
+					console.log('LOG: authClient.signInWithRedirect = '+JSON.stringify(oktaConfig, null, 2));
+
+					authClient.signInWithRedirect({
+						originalUri: `${window.location.href}`,
+						...oktaConfig,
+					});
+
+
+				} else {
+					// LocalStorage usage is must for this product
+					localStorage.setItem('authFetching', false);  // eslint-disable-line
+					if (!sClientId) document.getElementById('authClientId').classList.add('is-invalid');
+					if (!sOktaurl) document.getElementById('oktaURL').classList.add('is-invalid');
+				}
+			}
+
+			function clearStorage() {
+				// LocalStorage usage is must for this product
+				localStorage.removeItem('clientId');  // eslint-disable-line
+				localStorage.removeItem('oktaurl'); // eslint-disable-line
+				localStorage.removeItem('authScope'); // eslint-disable-line
+				if (maxAge) localStorage.removeItem('maxAge'); // eslint-disable-line
+
+				if (AuthFlow) localStorage.removeItem('authFlow'); // eslint-disable-line
+
+				localStorage.setItem('authFetching', false);  // eslint-disable-line
+
+				ndAuthClientId.value = '';
+				ndOktaURL.value = '';
+				ndAuthScope.value = 'offline_access';
+				ndAuthMaxAge.value = '';
+				ndAuthFlow.value = "authorization_code_flow";
+			}
+
+			ndAuthLoginBtn.onclick = function () {              // eslint-disable-line
+				localStorage.setItem('clientId', ndAuthClientId.value); // eslint-disable-line
+				localStorage.setItem('oktaurl', ndOktaURL.value); // eslint-disable-line
+				localStorage.setItem('authScope', ndAuthScope.value); // eslint-disable-line
+				localStorage.setItem('maxAge', ndAuthMaxAge.value); // eslint-disable-line
+				localStorage.setItem("authFlow", ndAuthFlow.value); // eslint-disable-line
+
+				brandLogin();
+			};
+			// LocalStorage usage is must for this product
+
+			if (bFetching === 'true') {
+				showProgress();
+			}
+			else {
+				toggleLogin();
+			}
+
+			// OpenId Authentication setup
+
+			// AuthProvider plugin written by the brand
+
+			Genesys('registerPlugin', 'AuthProvider', (AuthProvider) => {
+				// COMMANDS
+
+				// getAuthCode
+				// getTokens
+				// setTokens
+
+				/* Register Commands */
+				console.log('LOG: Auth registerPlugin');
+				AuthProvider.registerCommand('getAuthCode', (e) => {
+					const { forceUpdate } = e.data || {};
+					if (forceUpdate) {
+						ndAuthLoginBtn.click(); // simulate the login click.
+						e.resolve();
+					} else {
+						const sData = {
+							authCode: brandAuthCode,
+							redirectUri: `${sRedirectURL}`,
+							nonce: sNonce,
+						};
+
+						if (maxAge) sData.maxAge = parseInt(maxAge);
+						if (bPKCE && verifier) sData.codeVerifier = verifier;
+
+						e.resolve(sData);
+					}
+				});
+				
+				AuthProvider.registerCommand('reAuthenticate', (e) => {
+					console.log('LOG: AuthProvider.registerCommand');
+					// Brand can handle this how ever they want.
+					// This command will be called when current refreshToken and/or authCode are no more valid. User needs to re-login here to provide us new authCode and/or refreshToken.
+					ndAuthLoginBtn.click(); // simulate the login click.
+					e.resolve();
+				});
+
+				AuthProvider.subscribe('Auth.ready', () => {
+					console.log('LOG: AuthProvider.subscribe Auth.ready');
+					bAuthenticated = AuthProvider.data('Auth.authenticated');
+					toggleLogin();
+				});
+
+				AuthProvider.subscribe('Auth.authenticated', () => {
+					console.log('LOG: AuthProvider.subscribe Auth.authenticated');
+					bAuthenticated = true;
+					hideProgress();
+					// LocalStorage usage is must for this product
+					localStorage.setItem('authFetching', false);  // eslint-disable-line
+					toggleLogin();
+				});
+
+				AuthProvider.subscribe('Auth.error', (error) => {
+					console.log('LOG: AuthProvider.subscribe Auth.error');
+					const { message } = error.data || {};
+
+					hideProgress();
+					// 'message' here is provided by our API and its always expected to be in string. Any security scan results are false postive in this case.
+					console.log("Auth Error", message);
+					// LocalStorage usage is must for this product
+					localStorage.setItem('authFetching', false); // eslint-disable-line
+				});
+
+				AuthProvider.subscribe('Auth.authError', (error) => {
+					console.log('LOG: AuthProvider.subscribe Auth.authError');
+					hideProgress();
+					// 'message' here is provided by our API and its always expected to be in string. Any security scan results are false postive in this case.
+					console.log("Auth Error", error);
+					// LocalStorage usage is must for this product
+					clearStorage();
+				});
+
+				/* Handlers */
+
+				ndAuthLogoutBtn.onclick = function () {
+					AuthProvider.command('Auth.logout')
+						.finally(() => {
+							bAuthenticated = false;
+							if (authClient) authClient.signOut();
+							toggleLogin();
+							clearStorage();
+						});
+				};
+
+				// Tell CXBus your plugin is ready (mandatory)
+				AuthProvider.ready();
+			});
+		}
+		
 	</script>
 
 	<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
