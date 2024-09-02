@@ -399,6 +399,8 @@
 
 			function brandLogin() { // eslint-disable-line
 
+				console.log('LOG: brandLogin()');
+
 				const sClientId = ndAuthClientId.value;
 				const sOktaurl = ndOktaURL.value;
 				const sAuthScope = ndAuthScope.value;
@@ -440,6 +442,8 @@
 					/**Initialize the okta auth client with the config options */
 
 					if (!authClient) authClient = new OktaAuth(oktaConfig); // eslint-disable-line 
+
+					console.log('LOG: authClient.signInWithRedirect = '+JSON.stringify(oktaConfig, null, 2));
 
 					authClient.signInWithRedirect({
 						originalUri: `${window.location.href}`,
@@ -522,8 +526,9 @@
 						e.resolve(sData);
 					}
 				});
-
+				
 				AuthProvider.registerCommand('reAuthenticate', (e) => {
+					console.log('LOG: AuthProvider.registerCommand');
 					// Brand can handle this how ever they want.
 					// This command will be called when current refreshToken and/or authCode are no more valid. User needs to re-login here to provide us new authCode and/or refreshToken.
 					ndAuthLoginBtn.click(); // simulate the login click.
@@ -531,11 +536,13 @@
 				});
 
 				AuthProvider.subscribe('Auth.ready', () => {
+					console.log('LOG: AuthProvider.subscribe Auth.ready');
 					bAuthenticated = AuthProvider.data('Auth.authenticated');
 					toggleLogin();
 				});
 
 				AuthProvider.subscribe('Auth.authenticated', () => {
+					console.log('LOG: AuthProvider.subscribe Auth.authenticated');
 					bAuthenticated = true;
 					hideProgress();
 					// LocalStorage usage is must for this product
@@ -544,6 +551,7 @@
 				});
 
 				AuthProvider.subscribe('Auth.error', (error) => {
+					console.log('LOG: AuthProvider.subscribe Auth.error');
 					const { message } = error.data || {};
 
 					hideProgress();
@@ -554,6 +562,7 @@
 				});
 
 				AuthProvider.subscribe('Auth.authError', (error) => {
+					console.log('LOG: AuthProvider.subscribe Auth.authError');
 					hideProgress();
 					// 'message' here is provided by our API and its always expected to be in string. Any security scan results are false postive in this case.
 					console.log("Auth Error", error);
