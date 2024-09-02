@@ -354,10 +354,14 @@
 			let bPKCE = AuthFlow == "pkce_flow" || false;
 
 			Genesys('subscribe', 'GenesysJS.configurationReceived', function (config) {
+				console.log('LOG: Received OKTA GenesysJS.configurationReceived');
 				if (config) {
+					console.log('LOG: config yes');
 					const { deploymentConfig } = config.data || {};
 					const { auth } = deploymentConfig || {};
 					const { enabled: bAuthEnabled } = auth || {};
+					console.log('LOG: '+JSON.stringify(config, null, 2));
+					console.log('LOG: bAuthEnabled =  '+bAuthEnabled);
 					if (bAuthEnabled) {
 						ndSignInButton && ndSignInButton.removeAttribute("disabled");
 						if (!bAuthenticated && !bAlreadyAuthorized && ndSignInButton.classList.contains("collapsed")) {
@@ -499,7 +503,7 @@
 				// setTokens
 
 				/* Register Commands */
-
+				console.log('LOG: Auth registerPlugin');
 				AuthProvider.registerCommand('getAuthCode', (e) => {
 					const { forceUpdate } = e.data || {};
 					if (forceUpdate) {
