@@ -19,10 +19,6 @@ window.onload = function() {
                     }
                 });
             }, 120000);
-            var title = $(document).attr('title');
-            if (title == null || title === '') {
-                title = $(location).attr('pathname').replaceAll("/", "_");
-            }
             $("#sharedModal").on('shown.bs.modal', function(){
                 Genesys("command", "Journey.record", {
                     eventName: "Event_Track",
