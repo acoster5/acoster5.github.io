@@ -48,6 +48,19 @@ window.onload = function() {
             $("div[id^='quickLookModal'],div[id^='RoomModal']").on('hidden.bs.modal', function() {
                 mvisible = false;
             });
+            Genesys("command", "Journey.trackScrollDepth", {
+                scrollDepthEvents: [
+                    {
+                        percentage: 90,
+                        eventName: "Event_Track",
+                        customAttributes: {
+                            Name: "Bottom Page Reached",
+                            Origin: $(location).attr('origin'),
+                            Pathname: $(location).attr('pathname')
+                        }
+                    }
+                ]
+            });
             $("#alertModal").on('shown.bs.modal', function(){
                 Genesys("command", "Journey.record", {
                     eventName: "Event_Track",
