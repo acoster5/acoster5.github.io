@@ -9,6 +9,16 @@ window.onload = function() {
     ys = document.createElement('script'); ys.async = 1; ys.src = n; ys.charset = 'utf-8'; document.head.appendChild(ys);
     ys.onload = function () {
         Genesys("subscribe", "Journey.ready", function() {
+             setTimeout(function () {
+                Genesys("command", "Journey.record", {
+                    eventName: "Event_Timeout",
+                    customAttributes: {
+                        Timeout:"60s",
+                        Origin: $(location).attr('origin'),
+                        Pathname: $(location).attr('pathname')
+                    }
+                });
+            }, 60000);
             setTimeout(function () {
                 Genesys("command", "Journey.record", {
                     eventName: "Event_Timeout",
