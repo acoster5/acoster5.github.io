@@ -13,16 +13,6 @@ window.onload = function() {
                 Genesys("command", "Journey.record", {
                     eventName: "Event_Timeout",
                     customAttributes: {
-                        Timeout:"30s",
-                        Origin: $(location).attr('origin'),
-                        Pathname: $(location).attr('pathname')
-                    }
-                });
-            }, 30000);
-            setTimeout(function () {
-                Genesys("command", "Journey.record", {
-                    eventName: "Event_Timeout",
-                    customAttributes: {
                         Timeout:"60s",
                         Origin: $(location).attr('origin'),
                         Pathname: $(location).attr('pathname')
