@@ -13,18 +13,18 @@
   });
 </script>
 <script type="text/javascript" charset="utf-8">
-Genesys("subscribe", "Journey.ready", function() {
-  Genesys("command", "Journey.pageview", {
-    pageTitle: window.document.title
-  });
-  setTimeout(function () {
-    Genesys("command", "Journey.record", {
-      eventName: "Event_Time_on_page",
-        customAttributes: {
-          "Timer":"30s",
-          "Event hostname": window.location.hostname
-        }
-       });
-    }, 30000);
+  Genesys("subscribe", "Journey.ready", function() {
+    Genesys("command", "Journey.pageview", {
+      pageTitle: window.document.title
     });
+    setTimeout(function () {
+      Genesys("command", "Journey.record", {
+        eventName: "Event_Time_on_page",
+          customAttributes: {
+            "Timer":"30s",
+            "Event hostname": window.location.hostname
+          }
+         });
+      }, 30000);
+   });
 </script>
