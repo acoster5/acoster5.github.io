@@ -17,7 +17,7 @@
                     eventName: "Event_Time_on_page",
                     customAttributes: {
                         "Timer":"30s",
-                        "Event_Page_hostname": window.location.hostname
+                        "Event hostname": window.location.hostname
                     }
                 });
             }, 30000);
