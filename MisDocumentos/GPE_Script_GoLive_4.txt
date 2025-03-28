@@ -11,16 +11,14 @@
     	Genesys("command", "Journey.pageview", {
         	pageTitle: pathname
     	});
+    	Genesys("command", "Journey.record", {
+        	eventName: "Event_Time_on_page",
+          	customAttributes: {
+            	"Timer”:”0s",
+            	"Event hostname": window.location.hostname
+          	}
+       });
     }, 5000);
-    setTimeout(function () {
-      Genesys("command", "Journey.record", {
-        eventName: "Event_Time_on_page",
-          customAttributes: {
-            "Timer”:”6s",
-            "Event hostname": window.location.hostname
-          }
-         });
-      }, 6000);
     setTimeout(function () {
       Genesys("command", "Journey.record", {
         eventName: "Event_Time_on_page",
