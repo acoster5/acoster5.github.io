@@ -1,0 +1,70 @@
+<script type="text/javascript" charset="utf-8">
+  Genesys("subscribe", "Journey.ready", function() {
+    setTimeout(function () {
+      let pathname = window.location.pathname;
+    	if (!pathname || pathname === "/") {
+        	pathname = "/home";
+    	}
+    	let segments = pathname.split('/').filter(Boolean); // Remove empty segments
+    	pathname = "/" + segments[segments.length - 1]; // Return last segment prefixed with "/"
+    	
+    	Genesys("command", "Journey.pageview", {
+        	pageTitle: pathname
+    	});
+    }, 5000);
+    setTimeout(function () {
+      Genesys("command", "Journey.record", {
+        eventName: "Event_Time_on_page",
+          customAttributes: {
+            "Timer”:”6s",
+            "Event hostname": window.location.hostname
+          }
+         });
+      }, 6000);
+    setTimeout(function () {
+      Genesys("command", "Journey.record", {
+        eventName: "Event_Time_on_page",
+          customAttributes: {
+            "Timer":"30s",
+            "Event hostname": window.location.hostname
+          }
+         });
+      }, 30000);
+    setTimeout(function () {
+      Genesys("command", "Journey.record", {
+        eventName: "Event_Time_on_page",
+          customAttributes: {
+            "Timer":"60s",
+            "Event hostname": window.location.hostname
+          }
+         });
+      }, 60000);   
+    setTimeout(function () {
+      Genesys("command", "Journey.record", {
+        eventName: "Event_Time_on_page",
+          customAttributes: {
+            "Timer":"120s",
+            "Event hostname": window.location.hostname
+          }
+         });
+      }, 120000);   
+    setTimeout(function () {
+      Genesys("command", "Journey.record", {
+        eventName: "Event_Time_on_page",
+          customAttributes: {
+            "Timer":"180s",
+            "Event hostname": window.location.hostname
+          }
+         });
+      }, 180000);
+    setTimeout(function () {
+      Genesys("command", "Journey.record", {
+        eventName: "Event_Time_on_page",
+          customAttributes: {
+            "Timer":"10800s",
+            "Event hostname": window.location.hostname
+          }
+         });
+      }, 10800000);
+   });
+</script>
