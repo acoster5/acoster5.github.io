@@ -14,7 +14,7 @@
     	Genesys("command", "Journey.record", {
         	eventName: "Event_Time_on_page",
           	customAttributes: {
-            	"Timer”:"0s",
+            	"Timer":"0s",
             	"Event hostname": window.location.hostname
           	}
        });
