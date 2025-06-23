@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ferrari Replica - Home</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-black text-white">
+
+<!-- Navigation -->
+<header class="bg-red-700 text-white fixed w-full z-50">
+  <div class="max-w-6xl mx-auto flex justify-between items-center p-4">
+    <h1 class="text-2xl font-bold">FERRARI</h1>
+    <nav class="space-x-6 hidden md:block">
+      <a href="index.html" class="hover:underline">Home</a>
+      <a href="models.html" class="hover:underline">Modelli</a>
+      <a href="#news" class="hover:underline">News</a>
+      <a href="#footer" class="hover:underline">Contatti</a>
+    </nav>
+  </div>
+</header>
+
+<!-- Hero -->
+<section id="hero" class="h-screen flex items-center justify-center bg-cover bg-center" style="background-image:url('images/hero.jpg')">
+  <div class="bg-black bg-opacity-60 p-10 rounded text-center">
+    <h2 class="text-5xl font-bold">Benvenuto in Ferrari</h2>
+    <p class="mt-4 text-xl">Prestazioni. Design. Innovazione.</p>
+  </div>
+</section>
+
+<!-- News -->
+<section id="news" class="py-20 px-6 bg-gray-900">
+  <div class="max-w-6xl mx-auto">
+    <h3 class="text-4xl font-bold text-center mb-12">Ultime Notizie</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+      <article class="bg-gray-800 rounded shadow p-4">
+        <div class="h-40 bg-cover bg-center rounded" style="background-image:url('images/news1.jpg')"></div>
+        <h4 class="text-xl font-semibold mt-4">Titolo Notizia 1</h4>
+        <p class="text-sm text-gray-400 mt-2">Breve descrizione della notizia relativa al mondo Ferrari.</p>
+      </article>
+      <article class="bg-gray-800 rounded shadow p-4">
+        <div class="h-40 bg-cover bg-center rounded" style="background-image:url('images/news2.jpg')"></div>
+        <h4 class="text-xl font-semibold mt-4">Titolo Notizia 2</h4>
+        <p class="text-sm text-gray-400 mt-2">Ulteriori aggiornamenti sul brand e le competizioni.</p>
+      </article>
+      <article class="bg-gray-800 rounded shadow p-4">
+        <div class="h-40 bg-cover bg-center rounded" style="background-image:url('images/news3.jpg')"></div>
+        <h4 class="text-xl font-semibold mt-4">Titolo Notizia 3</h4>
+        <p class="text-sm text-gray-400 mt-2">Rimani aggiornato sulle innovazioni Ferrari.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer id="footer" class="bg-red-800 text-center text-white p-6">
+  <p>&copy; 2025 Ferrari Replica. Sito dimostrativo non ufficiale.</p>
+</footer>
+
+
+<script type="text/javascript" charset="utf-8">
+  (function (g, e, n, es, ys) {
+    g['_genesysJs'] = e;
+    g[e] = g[e] || function () {
+      (g[e].q = g[e].q || []).push(arguments)
+    };
+    g[e].t = 1 * new Date();
+    g[e].c = es;
+    ys = document.createElement('script'); ys.async = 1; ys.src = n; ys.charset = 'utf-8'; document.head.appendChild(ys);
+  })(window, 'Genesys', 'https://apps.mypurecloud.ie/genesys-bootstrap/genesys.min.js', {
+    environment: 'euw1',
+    deploymentId: 'd95a1769-40fb-48b0-8b3f-0461acae09f4'
+  });
+</script>
+
+</body>
+</html>
